@@ -1,0 +1,57 @@
+package cn.zhengsigen.java.aop;
+
+import java.io.InputStream;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import cn.zhengsigen.java.aop.dao.AspectJDemo;
+import cn.zhengsigen.java.aop.dao.UserService;
+import cn.zhengsigen.java.aop.pojo.User;
+
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+
+@Configuration//启动类
+@ComponentScan//扫描整个项目找到
+							//是否显示代理人，       //代理是由java还是由动态代理
+@EnableAspectJAutoProxy(exposeProxy = true, proxyTargetClass = true) 
+public class Test {
+
+	public static void main(String[] args) throws ClassNotFoundException, SQLException {
+		AnnotationConfigApplicationContext cont = new AnnotationConfigApplicationContext(Test.class);
+		AspectJDemo aspectJDemo = cont.getBean(AspectJDemo.class);
+		Connection connection = aspectJDemo.before();
+
+		UserService bean = cont.getBean(UserService.class);
+		User user = new User();
+		user.setName("admin123123");	
+		user.setId(2);
+		//新增
+		bean.addUser(connection,user);
+		//删除
+		bean.deleteUser(connection, user);
+		
+		
+		/*
+		 * SqlSessionFactoryBuilder factoryBuilder = new SqlSessionFactoryBuilder();
+		 * InputStream is =
+		 * Thread.currentThread().getContextClassLoader().getResourceAsStream(
+		 * "mybatis-config.xml"); SqlSessionFactory sqlSessionFactory =
+		 * factoryBuilder.build(is); SqlSession session =
+		 * sqlSessionFactory.openSession(true); UserService mapper =
+		 * session.getMapper(UserService.class); User user = new User();
+		 * user.setName("123123min"); mapper.addUser(user);
+		 */
+		
+		/*
+		 * String[] beanDefinitionNames = cont.getBeanDefinitionNames(); for(String
+		 * s:beanDefinitionNames) { System.out.println(s); }
+		 */
+	}
+}

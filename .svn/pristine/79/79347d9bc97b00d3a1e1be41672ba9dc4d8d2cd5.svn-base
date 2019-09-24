@@ -1,0 +1,44 @@
+package cn.zhengsigen.java.aop.dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.context.annotation.Configuration;
+
+@Aspect
+@Configuration
+public class AspectJDemo {
+	
+	Connection connection;
+			
+	@Pointcut("execution(* cn.zhengsigen.java.aop.service.**.*(..))")
+	public void pointcut() {}
+	
+	
+	@Before("pointcut()")
+	public Connection before() throws ClassNotFoundException, SQLException {
+		Class.forName("com.mysql.jdbc.Driver");
+		connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/0412spring?user=root&password=123&useSSL=false");
+		connection.setAutoCommit(false);
+		return connection;
+	}
+	@Around(value = "pointcut()")
+	public void around(ProceedingJoinPoint proceedingJoinPoint) throws Throwable {
+		Object[] args = proceedingJoinPoint.getArgs();
+		args[0] =connection;
+		try {
+			proceedingJoinPoint.proceed(args);
+			((Connection) args[0]).commit();
+		} catch (Exception e) {
+			System.err.println("异常："+proceedingJoinPoint.getSignature().getName()+":"+e);	
+			((Connection) args[0]).rollback();
+			System.out.println("数据已回滚");
+		}
+	}
+}

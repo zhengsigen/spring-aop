@@ -1,0 +1,47 @@
+package cn.zhengsigen.java.aop.service;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import cn.zhengsigen.java.aop.controller.Transaction;
+import cn.zhengsigen.java.aop.dao.UserService;
+import cn.zhengsigen.java.aop.pojo.User;
+
+@Transaction
+public class UserServiceImpl implements UserService{
+
+	@Override
+	public void addUser(Connection connection,User user) throws SQLException {	
+		PreparedStatement ps = connection.prepareStatement("INSERT INTO user (name) VALUES (?)");
+		ps.setString(2, user.getName());
+		ps.executeUpdate();
+		System.out.println("用户添加成功");
+	}
+
+	@Override
+	public void deleteUser(Connection connection, User user) throws SQLException {
+		PreparedStatement ps = connection.prepareStatement("DELETE FROM user WHERE id=?");
+		ps.setString(2, user.getId()+"");
+		ps.executeUpdate();
+		System.out.println("用户删除成功");
+	}
+
+	@Override
+	public Map<Integer, User> getList(Connection connection) throws SQLException {
+		PreparedStatement ps = connection.prepareStatement("select id,name,create_time,update_time from user");
+		ResultSet rs = ps.executeQuery();
+		 Map<Integer, User> users = new HashMap<Integer, User>();  
+		while(rs.next()) {
+			User u =new User(rs.getInt("id"),rs.getString("name"),
+					new Date(rs.getDate("create_time").getTime()),
+					new Date(rs.getDate("update_time").getTime()));
+			users.put(u.getId(),u);
+		}
+		return users;
+	}
+}
